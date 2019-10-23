@@ -1,6 +1,7 @@
 from mutagen.easyid3 import EasyID3, ID3
 from mutagen.id3 import TXXX
 from fsUtils import isFile
+from fileUtils import getExt
 
 ##############################################################################################################################
 # MP3ID
@@ -24,13 +25,20 @@ class mp3tags:
 # MP3ID
 ##############################################################################################################################
 class mp3ID():
-    def __init__(self, mp3=None, debug=False, allowMissing=True):
+    def __init__(self, mp3=None, debug=False, allowMissing=True, test=False):
+        self.mp3exts = [".mp3", ".MP3", ".Mp3"]
+        
         if mp3 is not None:
             if not isFile(mp3):
                 raise ValueError("Could not access {0}".format(mp3))
+            if getExt(mp3) not in self.mp3exts:
+                raise ValueError("This is not an mp3")
+
+                
         self.mp3   = mp3
         self.debug = debug
         self.allowMissing = allowMissing
+        self.test = test
 
         self.tags  = {'TALB': 'Album',
                       'TBPM': 'BPM',
@@ -65,12 +73,25 @@ class mp3ID():
         self.tagsEasyID3 = {}
         self.tagsID3     = {}
         
+        
+        
         if isFile(self.mp3):
             self.setMP3(self.mp3)
-                        
-                
-    def getMP3(self):
+              
+
+    def getTags(self):
+        self.setTags()
         return self.tags
+
+    def setTags(self):
+        self.tags = mp3tags(path=self.mp3,
+                            artist=self.getArtist(),
+                            albumartist=self.getAlbumArtist(),
+                            album=self.getAlbum(),
+                            title=self.getTitle(),
+                            track=self.getTrackNumber(),
+                            disc=self.getDiscNumber(),
+                            compilation=self.getCompilation())
         
     def setMP3(self, mp3):
         if isFile(mp3):
@@ -78,15 +99,6 @@ class mp3ID():
             
             self.findEasyTags()
             self.findID3Tags()
-
-            self.tags = mp3tags(path=self.mp3,
-                                artist=self.getArtist(),
-                                albumartist=self.getAlbumArtist(),
-                                album=self.getAlbum(),
-                                title=self.getTitle(),
-                                track=self.getTrackNumber(),
-                                disc=self.getDiscNumber(),
-                                compilation=self.getCompilation())
         else:
             raise ValueError("Could not access {0}".format(mp3))
             
@@ -123,7 +135,7 @@ class mp3ID():
         
 
     ########################## Setter ##########################
-    def setEasyTag(self, tag, tagVal, test=False):
+    def setEasyTag(self, tag, tagVal):
         if self.tagsEasyID3 is None:
             self.findEasyTags()
     
@@ -137,7 +149,7 @@ class mp3ID():
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.mp3))
             
-        if test is True:
+        if self.test is True:
             print("Not saving because test flag is True")
         else:
             try:
@@ -167,7 +179,7 @@ class mp3ID():
 
         if tagValRes is not None:
             try:
-                tagVal = tagValRes[0]
+                tagVal = tagValRes
             except:
                 if self.allowMissing:
                     tagVal = None
@@ -208,7 +220,7 @@ class mp3ID():
         
 
     ########################## Setter ##########################
-    def setID3Tag(self, tag, tagVal, test=False):
+    def setID3Tag(self, tag, tagVal):
         if self.tagsID3 is None:
             self.findID3Tags()
     
@@ -229,7 +241,7 @@ class mp3ID():
             except:
                 raise ValueError("Could not set ID3 tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.mp3))
 
-        if test is True:
+        if self.test is True:
             print("Not saving because test flag is True")
         else:
             try:
@@ -366,7 +378,12 @@ class mp3ID():
     # Track Number
     ###############################################################################
     def setTrackNumber(self, trackNumberVal):
-        return self.setEasyTag('tracknumber', trackNumberVal)
+        try:
+            trackNo = str(int(trackNumberVal))
+        except:
+            return "setDiscNumber() requires an integer!"
+        
+        return self.setEasyTag('tracknumber', trackNo)
 
     def getTrackNumber(self, easy=True):
         if easy is True:
@@ -381,7 +398,12 @@ class mp3ID():
     # Disc Number
     ###############################################################################
     def setDiscNumber(self, discNumberVal):
-        return self.setEasyTag('discnumber', discNumberVal)
+        try:
+            discNo = str(int(discNumberVal))
+        except:
+            return "setDiscNumber() requires an integer!"
+        
+        return self.setEasyTag('discnumber', discNo)
 
     def getDiscNumber(self, easy=True):
         return self.getEasyTag('discnumber')
