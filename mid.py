@@ -31,11 +31,11 @@ def fix(val):
     
 def p(vals):
     vals = [fix(x) for x in vals]
-    print("{0: <4}{1: <6}{2: <7}{3: <30}{4: <30}{5: <30}{6: <50}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]))
+    print("{0: <4}{1: <6}{2: <7}{3: <30}{4: <30}{5: <30}{6: <40}{7: <10}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7]))
 
 def header():
-    p(["##", "Disc", "Track", "AlbumArtist", "Artist", "Album", "Title"])
-    p(["--", "----", "-----", "-----------", "------", "-----", "-----"])
+    p(["##", "Disc", "Track", "AlbumArtist", "Artist", "Album", "Title", "Size"])
+    p(["--", "----", "-----", "-----------", "------", "-----", "-----", "----"])
 
 def main(args):
     
@@ -48,14 +48,22 @@ def main(args):
     files = getFiles(args.file, args.dir)
     header()
     for i,ifile in enumerate(files):
-        print("")
-        print(i,ifile)
         results = MusicID(ifile)
+        if results.skip is True:
+            continue
+        r = results.getInfo()
+
+            
+        ## Artst
+        if args.artist is not None:
+            oldName = r["Artist"]
+            results.setTag("Artist", args.artist)
+            
+        r = results.getInfo()
         #if results.isValid() is False:
         #    continue
-        r = results.getInfo()
-        print('R ==>',r)
-        p([i, r["DiscNo"], r["TrackNo"], r["AlbumArtist"], r["Artist"], r["Album"], r["Title"]])
+        #print('R ==>',r)
+        p([i, r["DiscNo"], r["TrackNo"], r["AlbumArtist"], r["Artist"], r["Album"], r["Title"], r["Size"]])
 
 
 

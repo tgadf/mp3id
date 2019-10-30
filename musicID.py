@@ -31,6 +31,9 @@ class MusicID():
         self.isMP3    = None
         self.flacExts = [".flac", ".Flac"]
         self.isFLAC   = None
+        
+        self.skips    = [".jpg", ".JPG", ".txt", ".log"]
+        self.skip     = False
                         
         self.file   = file
         self.debug  = debug
@@ -90,9 +93,9 @@ class MusicID():
         
         self.id3Map = {v: k for k,v in self.mp3tags.items()}
         
-        self.tagsEasyID3 = {}
-        self.tagsID3     = {}
-        self.tagsFlac    = {}
+        self.tagsEasyID3 = None
+        self.tagsID3     = None
+        self.tagsFlac    = None
         
 
     def getTags(self):
@@ -100,7 +103,7 @@ class MusicID():
         return self.tags
 
     def setTags(self):
-        self.tags = Musictags(path=self.file,
+        self.tags = tags(path=self.file,
                             artist=self.getArtist(),
                             albumartist=self.getAlbumArtist(),
                             album=self.getAlbum(),
@@ -115,8 +118,6 @@ class MusicID():
         return False
         
     def setMusic(self, file):
-        self.debug = True
-        print("setMusic()",file)
         if isFile(file):
             self.file = file
             if getExt(file) in self.flacExts:
@@ -127,6 +128,8 @@ class MusicID():
                 self.isMP3 = True
                 if self.debug:
                     print("  File is MP3")
+            elif getExt(file) in self.skips:
+                self.skip = True
             else:
                 raise ValueError("Could not determine format for {0}".format(file))
             
@@ -135,8 +138,6 @@ class MusicID():
                 self.findID3Tags()
             if self.isFLAC is True:
                 self.findFlacTags()
-                print('tags==>',self.tagsFlac)
-                1/0
         else:
             raise ValueError("Could not access {0}".format(ifile))
             
@@ -209,6 +210,8 @@ class MusicID():
             return
 
         tagValRes = self.tagsFlac.get(tag)
+
+        self.debug = True
         tagVal    = None
 
         if tagValRes is None:
@@ -419,13 +422,15 @@ class MusicID():
     ###############################################################################
     # Version
     ###############################################################################
-    def getVersion(self):
-        if self.tagsEasyID3 is None:
-            self.findEasyTags()
-
-        try:
-            version = self.tagsEasyID3.version
-        except:
+    def getVersion(self, easy=True):
+        if self.isMP3:
+            if self.tagsEasyID3 is None:
+                self.findEasyTags()
+            try:
+                version = self.tagsEasyID3.version
+            except:
+                version = None
+        else:
             version = None
 
         return version
@@ -453,7 +458,8 @@ class MusicID():
             else:
                 return self.getID3Tag(key)
         elif self.isFLAC:
-            return self.getFlacTag(key)
+            val = self.getFlacTag(key)
+            return val
         else:
             raise ValueError("Not sure about format for key = {0}".format(key, value))
     
@@ -479,7 +485,6 @@ class MusicID():
 
     def getAlbum(self, easy=True):
         key = self.keyMap["album"][easy]
-        print(key)
         return self.getTag(key, easy)
     
     
@@ -598,4 +603,5 @@ class MusicID():
                   "Compilation": self.getCompilation(),
                   "Language": None,
                   "Size": size}
+        
         return retval
