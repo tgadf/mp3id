@@ -3,7 +3,7 @@ import setuptools
 
 setup(
   name = 'mp3id',
-  py_modules = ['mp3id'],
+  py_modules = ['mp3id', 'musicID'],
   version = '0.0.1',
   description = 'A Python Wrapper For Mp3 Tag IO',
   long_description = open('README.md').read(),

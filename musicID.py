@@ -1,8 +1,9 @@
 from mutagen.easyid3 import EasyID3, ID3
+from mutagen.mp4 import MP4
 from mutagen.id3 import TXXX
 from mutagen.flac import FLAC
 from fsUtils import isFile
-from fileUtils import getExt
+from fileUtils import getExt, getSize
 
 ##############################################################################################################################
 # MusicID
@@ -31,8 +32,11 @@ class MusicID():
         self.isMP3    = None
         self.flacExts = [".flac", ".Flac"]
         self.isFLAC   = None
+        self.m4aExts  = [".m4a", ".M4a", ".M4A"]
+        self.isM4A    = None
+
         
-        self.skips    = [".jpg", ".JPG", ".txt", ".log"]
+        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico']
         self.skip     = False
                         
         self.file   = file
@@ -77,6 +81,31 @@ class MusicID():
         ###############################################################################
         # Key Map
         ###############################################################################
+        self.inputMap = {}
+        self.inputMap["Artist"]      = "artist"
+        self.inputMap["Album"]       = "album"
+        self.inputMap["AlbumArtist"] = "albumartist"
+        self.inputMap["DiscNo"]      = "discnumber"
+        self.inputMap["Disc"]        = "discnumber"
+        self.inputMap["TrackNo"]     = "tracknumber"
+        self.inputMap["Track"]       = "tracknumber"
+        self.inputMap["Title"]       = "title"
+
+        
+        self.inputM4AMap = {}
+        self.inputM4AMap["Artist"]      = "©ART"
+        self.inputM4AMap["Album"]       = "©alb"
+        self.inputM4AMap["AlbumArtist"] = "aART"
+        self.inputM4AMap["DiscNumber"]  = "disk"
+        self.inputM4AMap["DiscNo"]      = "disk"
+        self.inputM4AMap["Disc"]        = "disk"
+        self.inputM4AMap["TrackNo"]     = "trkn"
+        self.inputM4AMap["TrackNumber"] = "trkn"
+        self.inputM4AMap["Track"]       = "trkn"
+        self.inputM4AMap["Title"]       = "©nam"
+
+
+        
         self.keyMap = {}
         self.keyMap["artist"]       = {True: "artist", False: "TPE1"}
         self.keyMap["album"]        = {True: "album", False: "TALB"}
@@ -96,6 +125,7 @@ class MusicID():
         self.tagsEasyID3 = None
         self.tagsID3     = None
         self.tagsFlac    = None
+        self.tagsM4A     = None
         
 
     def getTags(self):
@@ -128,18 +158,116 @@ class MusicID():
                 self.isMP3 = True
                 if self.debug:
                     print("  File is MP3")
+            elif getExt(file) in self.m4aExts:
+                self.isM4A = True
+                if self.debug:
+                    print("  File is M4A")
             elif getExt(file) in self.skips:
                 self.skip = True
+            elif ".DS_Store" in file:
+                self.skip = True
             else:
-                raise ValueError("Could not determine format for {0}".format(file))
+                raise ValueError("Could not determine format for [{0}] with extention [{1}]".format(file, getExt(file)))
             
             if self.isMP3 is True:
+                #self.findID3Tags()
                 self.findEasyTags()
-                self.findID3Tags()
             if self.isFLAC is True:
                 self.findFlacTags()
+            if self.isM4A is True:
+                self.findM4ATags()
         else:
             raise ValueError("Could not access {0}".format(ifile))
+            
+
+            
+            
+    ##############################################################################################################
+    #
+    # M4A Tags
+    #
+    ##############################################################################################################
+    
+    ########################## Finder ##########################
+    def findM4ATags(self):
+        try:
+            audio = MP4(self.file)
+        except:
+            if self.debug:
+                print("Could not get M4A tags for {0}".format(self.file))
+            audio = None
+        self.tagsM4A = audio
+        
+        
+    ########################## Shower ##########################
+    def showM4ATags(self):
+        if self.tagsM4A is None:
+            self.findM4ATags()
+        return list(self.tagsM4A.keys())
+        
+        
+    ########################## Getter ##########################
+    def getM4ATags(self):
+        if self.tagsM4A is None:
+            self.findM4ATags()
+        return self.tagsM4A
+        
+
+    ########################## Setter ##########################
+    def setM4ATag(self, tag, tagVal):
+        if self.tagsM4A is None:
+            self.findM4ATags()
+    
+        if self.tagsM4A is None:
+            if self.debug:
+                print("Could not set M4A tag because tags are None")
+            return
+
+        try:
+            self.tagsM4A[tag] = tagVal
+        except:
+            raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
+            
+        if self.test is True:
+            print("Not saving because test flag is True")
+        else:
+            try:
+                self.tagsM4A.save()
+            except:
+                raise ValueError("Could not save tags to {0}".format(self.file))
+        
+
+    ########################## Getter ##########################
+    def getM4ATag(self, tag):
+        if self.tagsM4A is None:
+            self.findM4ATags()
+    
+        if self.tagsM4A is None:
+            if self.debug:
+                print("Could not get M4A tag because tags are None")
+            return
+
+        tagValRes = self.tagsM4A.get(tag)
+
+        self.debug = True
+        tagVal    = None
+
+        if tagValRes is None:
+            if self.allowMissing is True:
+                tagVal = None
+            else:
+                raise ValueError("Could not get M4A tag [{0}] for [{1}]".format(tag, self.file))
+
+        if tagValRes is not None:
+            try:
+                tagVal = tagValRes
+            except:
+                if self.allowMissing:
+                    tagVal = None
+                else:
+                    raise ValueError("Could not get M4A tag [{0}] for [{1}] even though it exists".format(tag, self.file))
+    
+        return tagVal
             
 
             
@@ -440,28 +568,45 @@ class MusicID():
     ###############################################################################
     # Tag
     ###############################################################################
-    def setTag(self, key, value, easy=True):
+    def setTag(self, key, value, easy=True):            
         if self.isMP3:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
             if easy is True:
                 return self.setEasyTag(key, value)
             else:
                 return self.setID3Tag(key, value)
         elif self.isFLAC:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
             return self.setFlacTag(key, value)
+        elif self.isM4A:
+            if self.inputM4AMap.get(key) is not None:
+                key = self.inputM4AMap[key]            
+            return self.setM4ATag(key, value)
         else:
             raise ValueError("Not sure about format for key: value = {0}:{1}".format(key, value))
     
     def getTag(self, key, easy=True):
         if self.isMP3:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
             if easy is True:
                 return self.getEasyTag(key)
             else:
                 return self.getID3Tag(key)
         elif self.isFLAC:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
             val = self.getFlacTag(key)
             return val
+        elif self.isM4A:
+            if self.inputM4AMap.get(key) is not None:
+                key = self.inputM4AMap[key]
+            val = self.getM4ATag(key)
+            return val
         else:
-            raise ValueError("Not sure about format for key = {0}".format(key, value))
+            raise ValueError("Not sure about format for key = {0}".format(key))
     
     
     ###############################################################################
@@ -587,20 +732,33 @@ class MusicID():
     ###############################################################################
     # General Info
     ###############################################################################
+    def getRawInfo(self):
+        if self.isMP3 is True:
+            self.findEasyTags()
+            return self.tagsEasyID3
+        elif self.isFLAC is True:
+            self.findFlacTags()
+            return self.tagsFlac
+        elif self.isM4A is True:
+            self.findM4ATags()
+            return self.tagsM4A
+        else:
+            raise ValueError("Cannot get raw info for this file!")
+
+
     def getInfo(self):
-        try:
-            size = getsize(self.file)
-        except:
-            size = False
+        size = getSize(self.file, units="MB")
+        if isinstance(size[0], float):
+            size = round(size[0],2)
         
-        retval = {"Version": self.getVersion(),
-                  "Artist": self.getArtist(),
-                  "AlbumArtist": self.getAlbumArtist(),
-                  "Album": self.getAlbum(),
-                  "Title": self.getTitle(),
-                  "TrackNo": self.getTrackNumber(),
-                  "DiscNo": self.getDiscNumber(),
-                  "Compilation": self.getCompilation(),
+        retval = {"Version": self.getTag("Version"),
+                  "Artist":  self.getTag("Artist"),
+                  "AlbumArtist": self.getTag("AlbumArtist"),
+                  "Album": self.getTag("Album"),
+                  "Title": self.getTag("Title"),
+                  "TrackNo": self.getTag("TrackNumber"),
+                  "DiscNo": self.getTag("DiscNumber"),
+                  "Compilation": self.getTag("Compilation"),
                   "Language": None,
                   "Size": size}
         
