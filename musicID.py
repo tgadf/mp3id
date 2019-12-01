@@ -2,6 +2,7 @@ from mutagen.easyid3 import EasyID3, ID3
 from mutagen.mp4 import MP4
 from mutagen.id3 import TXXX
 from mutagen.flac import FLAC
+from mutagen.oggvorbis import OggVorbis
 from fsUtils import isFile
 from fileUtils import getExt, getSize
 
@@ -34,9 +35,13 @@ class MusicID():
         self.isFLAC   = None
         self.m4aExts  = [".m4a", ".M4a", ".M4A"]
         self.isM4A    = None
+        self.asfExts  = [".wma", ".WMA"]
+        self.isASF    = None
+        self.oggExts  = [".ogg", ".OGG"]
+        self.isOGG    = None
 
         
-        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico']
+        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp", ".md5"]
         self.skip     = False
                         
         self.file   = file
@@ -92,6 +97,17 @@ class MusicID():
         self.inputMap["Title"]       = "title"
 
         
+        self.inputOGGMap = {}
+        self.inputOGGMap["Artist"]      = "artist"
+        self.inputOGGMap["Album"]       = "album"
+        self.inputOGGMap["AlbumArtist"] = "artist"
+        self.inputOGGMap["DiscNo"]      = None
+        self.inputOGGMap["Disc"]        = None
+        self.inputOGGMap["TrackNo"]     = "tracknumber"
+        self.inputOGGMap["Track"]       = "tracknumber"
+        self.inputOGGMap["Title"]       = "title"
+
+        
         self.inputM4AMap = {}
         self.inputM4AMap["Artist"]      = "©ART"
         self.inputM4AMap["Album"]       = "©alb"
@@ -104,7 +120,19 @@ class MusicID():
         self.inputM4AMap["Track"]       = "trkn"
         self.inputM4AMap["Title"]       = "©nam"
 
+        self.inputASFMap = {}
+        self.inputASFMap["Artist"]      = "WM/AlbumArtist"
+        self.inputASFMap["Album"]       = "WM/AlbumTitle"
+        self.inputASFMap["AlbumArtist"] = "WM/AlbumArtist"
+        self.inputASFMap["DiscNumber"]  = None
+        self.inputASFMap["DiscNo"]      = None
+        self.inputASFMap["Disc"]        = None
+        self.inputASFMap["TrackNo"]     = "WM/TrackNumber"
+        self.inputASFMap["TrackNumber"] = "WM/TrackNumber"
+        self.inputASFMap["Track"]       = "WM/TrackNumber"
+        self.inputASFMap["Title"]       = "Title"
 
+        
         
         self.keyMap = {}
         self.keyMap["artist"]       = {True: "artist", False: "TPE1"}
@@ -126,6 +154,7 @@ class MusicID():
         self.tagsID3     = None
         self.tagsFlac    = None
         self.tagsM4A     = None
+        self.tagsOGG     = None
         
 
     def getTags(self):
@@ -162,6 +191,14 @@ class MusicID():
                 self.isM4A = True
                 if self.debug:
                     print("  File is M4A")
+            elif getExt(file) in self.asfExts:
+                self.isASF = True
+                if self.debug:
+                    print("  File is ASF (WMA)")
+            elif getExt(file) in self.oggExts:
+                self.isOGG = True
+                if self.debug:
+                    print("  File is OGG")
             elif getExt(file) in self.skips:
                 self.skip = True
             elif ".DS_Store" in file:
@@ -176,11 +213,106 @@ class MusicID():
                 self.findFlacTags()
             if self.isM4A is True:
                 self.findM4ATags()
+            if self.isASF is True:
+                self.findASFTags()
+            if self.isOGG is True:
+                self.findOGGTags()
         else:
             raise ValueError("Could not access {0}".format(ifile))
             
 
             
+            
+    ##############################################################################################################
+    #
+    # OGG Tags
+    #
+    ##############################################################################################################
+    
+    ########################## Finder ##########################
+    def findOGGTags(self):
+        try:
+            audio = OggVorbis(self.file)
+        except:
+            if self.debug:
+                print("Could not get OGG tags for {0}".format(self.file))
+            audio = None
+        self.tagsOGG = audio
+        
+        
+    ########################## Shower ##########################
+    def showOGGTags(self):
+        if self.tagsOGG is None:
+            self.findOGGTags()
+        return list(self.tagsOGG.keys())
+        
+        
+    ########################## Getter ##########################
+    def getOGGTags(self):
+        if self.tagsOGG is None:
+            self.findOGGTags()
+        return self.tagsOGG
+        
+
+    ########################## Setter ##########################
+    def setOGGTag(self, tag, tagVal):
+        if self.tagsOGG is None:
+            self.findOGGTags()
+    
+        if self.tagsOGG is None:
+            if self.debug:
+                print("Could not set OGG tag because tags are None")
+            return
+
+        try:
+            self.tagsOGG[tag] = tagVal
+        except:
+            raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
+            
+        if self.test is True:
+            print("Not saving because test flag is True")
+        else:
+            try:
+                self.tagsOGG.save()
+            except:
+                raise ValueError("Could not save tags to {0}".format(self.file))
+        
+
+    ########################## Getter ##########################
+    def getOGGTag(self, tag):
+        if self.tagsOGG is None:
+            self.findOGGTags()
+    
+        if self.tagsOGG is None:
+            if self.debug:
+                print("Could not get OGG tag because tags are None")
+            return
+
+        tagValRes = self.tagsOGG.get(tag)
+
+        self.debug = True
+        tagVal    = None
+
+        if tagValRes is None:
+            if self.allowMissing is True:
+                tagVal = None
+            else:
+                raise ValueError("Could not get OGG tag [{0}] for [{1}]".format(tag, self.file))
+
+        if tagValRes is not None:
+            try:
+                tagVal = tagValRes
+            except:
+                if self.allowMissing:
+                    tagVal = None
+                else:
+                    raise ValueError("Could not get OGG tag [{0}] for [{1}] even though it exists".format(tag, self.file))
+    
+        return tagVal
+            
+
+
+
             
     ##############################################################################################################
     #
@@ -266,6 +398,98 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get M4A tag [{0}] for [{1}] even though it exists".format(tag, self.file))
+    
+        return tagVal
+
+            
+
+
+
+            
+    ##############################################################################################################
+    #
+    # ASF Tags
+    #
+    ##############################################################################################################
+    
+    ########################## Finder ##########################
+    def findASFTags(self):
+        try:
+            audio = ASF(self.file)
+        except:
+            if self.debug:
+                print("Could not get ASF tags for {0}".format(self.file))
+            audio = None
+        self.tagsASF = audio
+        
+        
+    ########################## Shower ##########################
+    def showASFTags(self):
+        if self.tagsASF is None:
+            self.findASFTags()
+        return list(self.tagsASF.keys())
+        
+        
+    ########################## Getter ##########################
+    def getASFTags(self):
+        if self.tagsASF is None:
+            self.findASFTags()
+        return self.tagsASF
+        
+
+    ########################## Setter ##########################
+    def setASFTag(self, tag, tagVal):
+        if self.tagsASF is None:
+            self.findASFTags()
+    
+        if self.tagsASF is None:
+            if self.debug:
+                print("Could not set ASF tag because tags are None")
+            return
+
+        try:
+            self.tagsASF[tag] = tagVal
+        except:
+            raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
+            
+        if self.test is True:
+            print("Not saving because test flag is True")
+        else:
+            try:
+                self.tagsASF.save()
+            except:
+                raise ValueError("Could not save tags to {0}".format(self.file))
+        
+
+    ########################## Getter ##########################
+    def getASFTag(self, tag):
+        if self.tagsASF is None:
+            self.findASFTags()
+    
+        if self.tagsASF is None:
+            if self.debug:
+                print("Could not get ASF tag because tags are None")
+            return
+
+        tagValRes = self.tagsASF.get(tag)
+
+        self.debug = True
+        tagVal    = None
+
+        if tagValRes is None:
+            if self.allowMissing is True:
+                tagVal = None
+            else:
+                raise ValueError("Could not get ASF tag [{0}] for [{1}]".format(tag, self.file))
+
+        if tagValRes is not None:
+            try:
+                tagVal = tagValRes
+            except:
+                if self.allowMissing:
+                    tagVal = None
+                else:
+                    raise ValueError("Could not get ASF tag [{0}] for [{1}] even though it exists".format(tag, self.file))
     
         return tagVal
             
@@ -584,6 +808,14 @@ class MusicID():
             if self.inputM4AMap.get(key) is not None:
                 key = self.inputM4AMap[key]            
             return self.setM4ATag(key, value)
+        elif self.isASF:
+            if self.inputASFMap.get(key) is not None:
+                key = self.inputASFMap[key]            
+            return self.setASFTag(key, value)
+        elif self.isOGG:
+            if self.inputOGGMap.get(key) is not None:
+                key = self.inputOGGMap[key]
+            return self.setOGGTag(key, value)
         else:
             raise ValueError("Not sure about format for key: value = {0}:{1}".format(key, value))
     
@@ -604,6 +836,16 @@ class MusicID():
             if self.inputM4AMap.get(key) is not None:
                 key = self.inputM4AMap[key]
             val = self.getM4ATag(key)
+            return val
+        elif self.isASF:
+            if self.inputASFMap.get(key) is not None:
+                key = self.inputASFMap[key]
+            val = self.getASFTag(key)
+            return val
+        elif self.isOGG:
+            if self.inputOGGMap.get(key) is not None:
+                key = self.inputOGGMap[key]
+            val = self.getOGGTag(key)
             return val
         else:
             raise ValueError("Not sure about format for key = {0}".format(key))
@@ -742,6 +984,12 @@ class MusicID():
         elif self.isM4A is True:
             self.findM4ATags()
             return self.tagsM4A
+        elif self.isASF is True:
+            self.findASFTags()
+            return self.tagsASF
+        elif self.isOGG is True:
+            self.findOGGTags()
+            return self.tagsOGG
         else:
             raise ValueError("Cannot get raw info for this file!")
 

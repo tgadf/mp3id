@@ -34,7 +34,7 @@ def fix(val):
     
 def p(vals):
     vals = [fix(x) for x in vals]
-    print("{0: <4}{1: <8}{2: <9}{3: <30}{4: <40}{5: <35}{6: <80}{7: <10}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7]))
+    print("{0: <4}{1: <8}{2: <9}{3: <25}{4: <35}{5: <60}{6: <70}{7: <6}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7]))
 
 def header():
     p(["##", "Disc", "Track", "AlbumArtist", "Artist", "Album", "Title", "Size"])
@@ -54,29 +54,36 @@ def addDefault(args):
 def main(args):
     args = addDefault(args)
     
-    print('Show        = {!r}'.format(args.show))
-    print('Search      = {!r}'.format(args.search))
-    print('Artist      = {!r}'.format(args.artist))
-    print('Album       = {!r}'.format(args.album))
-    print('AlbumArtist = {!r}'.format(args.albumartist))
-    print('Title       = {!r}'.format(args.title))
-    print('DiscNo      = {!r}'.format(args.discno))
-    print('TrackNo     = {!r}'.format(args.trackno))
-    print('File        = {!r}'.format(args.file))
-    print('Dir         = {!r}'.format(args.dir))
+    if args.debug is True:
+        print('Show        = {!r}'.format(args.show))
+        print('Search      = {!r}'.format(args.search))
+        print('Artist      = {!r}'.format(args.artist))
+        print('Album       = {!r}'.format(args.album))
+        print('AlbumArtist = {!r}'.format(args.albumartist))
+        print('Title       = {!r}'.format(args.title))
+        print('DiscNo      = {!r}'.format(args.discno))
+        print('TrackNo     = {!r}'.format(args.trackno))
+        print('File        = {!r}'.format(args.file))
+        print('Dir         = {!r}'.format(args.dir))
 
     searchResults = {}
     
     files = getFiles(args.file, args.dir)
     for i,(dirval,filevals) in enumerate(files.items()):
-        print("\nDirectory: {0}".format(dirval))
         searchResults[dirval] = []
-        header()
         j = 0
+        first = False
+
         for jf, ifile in enumerate(filevals):
             results = MusicID(ifile, debug=args.debug)
             if results.skip is True:
                 continue
+            if first is False:
+                first = True
+            if first is True:
+                print("\nDirectory: {0}".format(dirval))
+                header()
+                first = None
             r  = results.getInfo()
             j += 1
             

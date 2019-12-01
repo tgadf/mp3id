@@ -1,10 +1,12 @@
 import argparse
 from musicID import MusicID
-from fsUtils import mkDir, moveFile, setDir
+from fsUtils import mkDir, moveFile, setDir, moveDir
 from fileUtils import isFile, isDir, getDirname
 from searchUtils import findAll, findWalk
 from os import getcwd
 from musicPath import pathBasics
+from time import sleep
+import sys
 
 def fix(val):
     if val is None:
@@ -20,7 +22,7 @@ def fix(val):
     
 def p(vals):
     vals = [fix(x) for x in vals]
-    print("{0: <4}{1: <8}{2: <9}{3: <30}{4: <40}{5: <35}{6: <80}{7: <10}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7]))
+    print("{0: <4}{1: <8}{2: <9}{3: <25}{4: <35}{5: <60}{6: <70}{7: <6}".format(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7]))
 
 def header():
     p(["##", "Disc", "Track", "AlbumArtist", "Artist", "Album", "Title", "Size"])
@@ -33,6 +35,11 @@ def addDefault(args):
         args.force = "Artist"
         
     return args
+
+def skipDirs():
+    return ["Random", "ToDo", "Todo", "Singles"]
+
+    #mtest -artist -force Album -usetag
     
 def main(args):
     args = addDefault(args)
@@ -51,6 +58,7 @@ def main(args):
     else:
         raise ValueError("Can only run with -artist, -album, or -class!")
 
+    actions = {}
     
     files = pb.getFiles()
     for i,(dirval,filevals) in enumerate(files.items()):
@@ -78,7 +86,7 @@ def main(args):
             if r["AlbumArtist"][0] == pbc["pbArtist"]:
                 pass
             else:
-                if pbc["pbAlbum"] in ["Random"]:
+                if pbc["pbAlbum"] in skipDirs():
                     pass
                 elif tags["AlbumArtist"][0].replace("/", "-") == pbc["pbArtist"]:
                     pass
@@ -89,7 +97,7 @@ def main(args):
             if r["Album"][0] == pbc["pbAlbum"]:
                 pass
             else:
-                if pbc["pbAlbum"] in ["Random"]:
+                if pbc["pbAlbum"] in skipDirs():
                     pass
                 else:
                     errs[ifile]["Album"] = {"Tag": r["Album"][0], "Path": pbc["pbAlbum"]}
@@ -97,19 +105,74 @@ def main(args):
                         
         if args.force is not None:
             for ifile,fileData in errs.items():
+                if actions.get(dirval) is not None:
+                    continue
+                if not isFile(ifile):
+                    continue
                 for category,errData in fileData.items():
                     if args.force.title() == category:
                         print("Mismatch: {0}".format(args.force.title()))
                         print("File:     {0}".format(ifile))
                         print("Tag:      [{0}]".format(errData["Tag"]))
                         print("Path:     [{0}]".format(errData["Path"]))
-                        return
+                        if args.usetag is True:
+                            srcdir = dirval
+                            if "/" in errData["Tag"]:
+                                print("Found / in Tag. Converting to -")
+                                errData["Tag"] = errData["Tag"].replace("/", "-")
+                            if "\"" in errData["Tag"]:
+                                print("Found \" in Tag. Converting to -")
+                                errData["Tag"] = errData["Tag"].replace("\"", "")
+
+                            dstdir = setDir(getDirname(dirval), errData["Tag"])
+                            print("Set option to move directory based on the {0} tag".format(category))
+                            print("Moving {0}".format(srcdir))
+                            if isDir(dstdir):
+                                print("="*40)
+                                print("== Not moving because there is already a directory with that name...")
+                                print("="*40)
+                                break
+                                
+                            print("    to {0}".format(dstdir))
+                            if "/" in errData["Path"]:
+                                print("="*40)
+                                print("== Not moving because there is a sub directory...")
+                                print("="*40)
+                                break
+
+                            if args.script is False:
+                                print("Sleeping for 3 seconds")
+                                for i in range(3):
+                                    print(".", end="")
+                                    sys.stdout.flush()
+                                    sleep(1)
+                                print("\n")
+                                moveDir(srcdir, dstdir)
+                                break
+                            else:
+                                actions[srcdir] = dstdir
+                                break
+                        else:
+                            return
                         
 
-    print("\n","="*60,"\n")
-    print("Looks Good")
-    print("\n\n")
-                          
+    if args.script is False:
+        print("\n","="*60,"\n")
+        print("Looks Good")
+        print("\n\n")
+    else:
+        if len(actions) > 0:
+            print("#!/bin/sh\n", file=open("actions.sh", "w"))
+            for srcdir,dstdir in actions.items():
+                print("mv \"{0}\" \"{1}\"".format(srcdir,dstdir), file=open("actions.sh", "a"))
+            from os import chmod
+            import stat
+            chmod("actions.sh", stat.S_IRWXU)
+        print("\n","="*60,"\n")
+        print("Looks Good")
+        print("\n\n")
+
+    
                               
                           
 
@@ -122,6 +185,11 @@ if __name__ == "__main__":
     parser.add_argument('-dir', '-d', action="store", dest="dir")
     parser.add_argument('-debug', action="store_true", default=False)
     parser.add_argument('-force', '-f', action="store", dest="force")
+    parser.add_argument('-script', action="store_true", default=False)    
+    parser.add_argument('-usetag', '-ut', action="store_true", default=False)
+    parser.add_argument('-usepath', '-up', action="store_true", default=False)
+
+
 
 
     args = parser.parse_args()
