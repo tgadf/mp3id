@@ -41,7 +41,7 @@ class MusicID():
         self.isOGG    = None
 
         
-        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp", ".md5"]
+        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp", ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to"]
         self.skip     = False
                         
         self.file   = file

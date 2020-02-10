@@ -3,12 +3,23 @@
 inFormat="${1}"
 outFormat="${2}"
 test="${3}"
+if [ -z ${test} ]; then
+  test="NO"
+else
+  test="YES"
+fi
+
+echo "In Format:  ${inFormat}"
+echo "Out Format: ${outFormat}"
+echo "Test Value: ${test}"
+
+
 
 find . -name *.${inFormat} | while read line; do
   inFile="${line}"
   outFile="${line%.ape}.${outFormat}"
   echo "Found [${inFile}]  =====> [${outFile}]"
-  if ! [ -z ${test} ]; then
+  if [ ${test} == "YES" ]; then
     continue
   fi
   

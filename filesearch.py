@@ -1,7 +1,7 @@
 import argparse
 from musicID import MusicID
-from fsUtils import mkDir, moveFile, setDir, moveDir
-from fileUtils import isFile, isDir, getDirname, getDirBasics, getBaseFilename
+from fsUtils import mkDir, moveFile, setDir, moveDir, removeDir, setFile
+from fileUtils import isFile, isDir, getDirname, getDirBasics, getBaseFilename, getFileBasics, getBasename
 from searchUtils import findAll, findWalk, findDirs
 from os import getcwd
 from musicPath import pathBasics
@@ -31,12 +31,6 @@ def header():
     p(["##", "Disc", "Track", "AlbumArtist", "Artist", "Album", "Title", "Size"])
     p(["--", "----", "-----", "-----------", "------", "-----", "-----", "----"])
 
-def addDefault(args):
-    if args.dir is None:
-        args.dir  = getcwd()
-    if args.force is None:
-        args.force = "Artist"
-        
     return args
 
 def skipDirs():
@@ -172,32 +166,6 @@ def testAlbum(albumDir, artistDir, files):
         #pbc = pbcs[j]
 
         ###############################################################################################
-        ## Album Tests
-        ###############################################################################################
-        albumTag = tag.get("Album")
-        if albumTag is None:
-            print("Album Name Error ==> [{0}]".format("No Album Tag"))      
-            retval["Album"] = True
-            break   
-            
-        try:
-            albumName = albumTag[0]            
-            albumName = albumName.replace("/", " ")
-        except:
-            print("Track Number Error ==> [{0}]".format("No Value"))                    
-            trackNo = ""
-        if len(albumName) == 0:
-            retval["Album"] = True
-            break
-
-        dirvals = getDirBasics(getDirname(ifile))
-        if albumName not in dirvals:
-            retval["Album"] = True
-       
-
-
-
-        ###############################################################################################
         ## Track Number Tests
         ###############################################################################################
         trkTag = tag.get("TrackNo")
@@ -282,33 +250,21 @@ def actionOnAlbum(albumDir, artistDir, retval):
     titleDir  = setDir(artistDir, "Title", forceExist=False)
     randomDir = setDir(artistDir, "Random", forceExist=False)
     mixDir    = setDir(artistDir, "Mix", forceExist=False)
-    albDir    = setDir(artistDir, "Album", forceExist=False)
-
 
     testTitle   = retval["Title"]
     testTitle   = False
     testTrackNo = retval["Track"]
     testMulti   = retval["Multi"]
     testMix     = retval["Mix"]
-    testAlbum   = retval["Album"]
-
 
     #print(testTitle,testTrackNo,testMulti)
 
-    if testAlbum is True:
-        if not isDir(albDir):
-            mkDir(albDir)
-        srcdir = albumDir
-        dstdir = setDir(albDir, getDirBasics(albumDir)[-1])
-        print("!!! Moving (Due To Album) {0}  ==> {1}".format(srcdir, dstdir))
-        sleep(1)
-        moveDir(srcdir, dstdir)
-    elif testTitle is True:
+    if testTitle is True:
         if not isDir(titleDir):
             mkDir(titleDir)
         srcdir = albumDir
         dstdir = setDir(titleDir, getDirBasics(albumDir)[-1])
-        print("!!! Moving {0} (Due To Title)  ==> {1}".format(srcdir, dstdir))
+        print("!!! Moving {0}  ==> {1}".format(srcdir, dstdir))
         sleep(1)
         moveDir(srcdir, dstdir)
     elif testMix is True:
@@ -316,7 +272,7 @@ def actionOnAlbum(albumDir, artistDir, retval):
             mkDir(mixDir)
         srcdir = albumDir
         dstdir = setDir(mixDir, getDirBasics(albumDir)[-1])
-        print("!!! Moving {0} (Due To Mix) ==> {1}".format(srcdir, dstdir))
+        print("!!! Moving {0}  ==> {1}".format(srcdir, dstdir))
         sleep(1)
         moveDir(srcdir, dstdir)
     elif testTrackNo is True:
@@ -324,7 +280,7 @@ def actionOnAlbum(albumDir, artistDir, retval):
             mkDir(todoDir)
         srcdir = albumDir
         dstdir = setDir(todoDir, getDirBasics(albumDir)[-1])
-        print("!!! Moving {0} (Due To Track) ==> {1}".format(srcdir, dstdir))
+        print("!!! Moving {0}  ==> {1}".format(srcdir, dstdir))
         sleep(1)
         moveDir(srcdir, dstdir)
     elif testMulti is True:
@@ -332,73 +288,96 @@ def actionOnAlbum(albumDir, artistDir, retval):
             mkDir(multiDir)
         srcdir = albumDir
         dstdir = setDir(multiDir, getDirBasics(albumDir)[-1])
-        print("!!! Moving {0} (Due To Multi) ==> {1}".format(srcdir, dstdir))
+        print("!!! Moving {0}  ==> {1}".format(srcdir, dstdir))
         sleep(1)
         moveDir(srcdir, dstdir)
 
         
         
+def addDefault(args):
+    if args.dir is None:
+        args.dir  = getcwd()
+    return args
+        
 def main(args):
+    print(args)
     args = addDefault(args)
     
-    print('Artist      = {!r}'.format(args.artist))
-    print('Album       = {!r}'.format(args.album))
-    print('Class       = {!r}'.format(args.cls))
-    print('Dir         = {!r}'.format(args.dir))
+    if args.artist:
+        print('Artist      = {!r}'.format(args.artist))
+        outdir=mkDir(setDir(args.dir, "Artist"))
+    if args.album:
+        print('Album       = {!r}'.format(args.album))
+        outdir=mkDir(setDir(args.dir, "Album"))        
+    if args.albumartist:
+        print('AlbumArtist = {!r}'.format(args.albumartist))
+        outdir=mkDir(setDir(args.dir, "AlbumArtist"))        
+    if args.disc:
+        print('Disc        = {!r}'.format(args.disc))
+        outdir=mkDir(setDir(args.dir, "Disc"))
+    if args.track:
+        print('Track       = {!r}'.format(args.track))
+        outdir=mkDir(setDir(args.dir, "Track"))
+    if args.dir:
+        print('Dir         = {!r}'.format(args.dir))
     
     
-    if args.album is True:
-        pb    = pathBasics(albumDir=args.dir)
-        files = pb.getFiles()
-        artistDir = getDirname(args.dir)
-        for albumDir, filevals in files.items():
-            retval = testAlbum(albumDir, artistDir, files=filevals)
-            actionOnAlbum(albumDir, artistDir, retval)
-            #print(retval)
-            
-    if args.artist is True:
-        artistDir = args.dir
-        pb    = pathBasics(artistDir=artistDir)
-        files = pb.getFiles()
-        print("\n")
-        print("="*60)
-        print("===",artistDir,"===")
-        print("="*60)
-        for albumDir, filevals in files.items():
-            retval = testAlbum(albumDir, artistDir, files=filevals)    
-            actionOnAlbum(albumDir, artistDir, retval)
-            #print(retval)    
-    
-    if args.cls is True:
-        artistDirs  = findDirs(args.dir)
-        for artistDir in artistDirs:
-            pb    = pathBasics(artistDir=artistDir)
-            files = pb.getFiles()
-            print("\n")
-            print("="*60)
-            print("===",artistDir,"===")
-            print("="*60)
-            for albumDir, filevals in files.items():
-                retval = testAlbum(albumDir, artistDir, files=filevals)    
-                actionOnAlbum(albumDir, artistDir, retval)
+    tomove = []
+    files  = findWalk(args.dir)
+    for idir, ifiles in files.items():
+        for jf, ifile in enumerate(ifiles):
+            results = MusicID(ifile, debug=args.debug)
+            if results.skip is True:
+                continue
+            tags = results.getInfo()
+            if args.artist:
+                if args.artist == tags["Artist"][0]:
+                    tomove.append(ifile)
+                    continue
+
+            if args.albumartist:
+                if args.albumartist == tags["AlbumArtist"][0]:
+                    tomove.append(ifile)
+                    continue
+
+            if args.album:
+                if args.album == tags["Album"][0]:
+                    tomove.append(ifile)
+                    continue
+
+            if args.disc:
+                print(args.disc, tags["DiscNo"][0])
+                if args.disc == tags["DiscNo"][0]:
+                    tomove.append(ifile)
+                    continue
+
+            if args.track:
+                if args.track == tags["TrackNo"][0]:
+                    tomove.append(ifile)
+                    continue
+
+    if len(tomove) > 0:
+        for ifile in tomove:
+            src = ifile
+            fname = getBasename(ifile)
+            dst = setFile(outdir, fname)
+            moveFile(src, dst)
+            print("Moved {0}  ===>  {1}".format(src, dst))
+    else:
+        removeDir(outdir)
+        print("Didn't find any matching files...")
 
                           
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Music ID Tagger')
-    parser.add_argument('-showpath', '-sp', action="store_true", dest="showpath", default=False)
-    parser.add_argument('-artist', '-art', action="store_true", dest="artist", default=False)
-    parser.add_argument('-album', '-alb', action="store_true", dest="album", default=False)
-    parser.add_argument('-class', '-c', action="store_true", dest="cls", default=False)
+    parser.add_argument('-artist', '-art', action="store", dest="artist", default=False)
+    parser.add_argument('-album', '-alb', action="store", dest="album", default=False)
+    parser.add_argument('-albumartist', '-aa', action="store", dest="albumartist", default=False)
+    parser.add_argument('-disc', action="store", dest="disc", default=False)
+    parser.add_argument('-track', action="store", dest="track", default=False)
     parser.add_argument('-dir', '-d', action="store", dest="dir")
     parser.add_argument('-debug', action="store_true", default=False)
-    parser.add_argument('-force', '-f', action="store", dest="force")
-    parser.add_argument('-script', action="store_true", default=False)
-    parser.add_argument('-usetag', '-ut', action="store_true", default=False)
-    parser.add_argument('-usepath', '-up', action="store_true", default=False)
-
-
-
 
     args = parser.parse_args()
     main(args)

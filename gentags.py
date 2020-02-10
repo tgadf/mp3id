@@ -20,7 +20,7 @@ def getBestVal(vals):
     return bestval
 
 def stripName(trackname):
-    delims = [" ", "-", ")"]
+    delims = [" ", "-", ")","."]
     found  = True
     while found:
         found = False
@@ -42,6 +42,16 @@ def guessTrackNumber(trackname):
             retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
         except:
             pass
+        
+    if len(retvals) == 0:
+        pattern = "^[0-9]{1}"
+        mval    = re.search(pattern, trackname)    
+        if mval is not None:
+            try:
+                int(mval.group())
+                retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
+            except:
+                pass
                 
     return retvals
 
@@ -72,7 +82,7 @@ def header():
     p(["--", "----", "-----", "-----------", "------", "-----", "-----", "----"])
 
     
-def testAlbum(albumDir, artistDir, files):
+def genMIDTags(albumDir, artistDir, files):
     
     retval = {"Track": False, "Album": False, "Title": False, "Multi": False, "Skip": False, "Extra": False, "Mix": False}
     
@@ -110,15 +120,18 @@ def testAlbum(albumDir, artistDir, files):
 
         tracks = guessTrackNumber(trackname)
         retval = getBestVal(tracks)
-        if retval.get('Val') is not None:
-            newtags["TrackNo"] = retval["Val"]
-            trackname = stripName(retval["Rep"])
+        if retval is not None:
+            if retval.get('Val') is not None:
+                newtags["TrackNo"] = retval["Val"]
+                trackname = stripName(retval["Rep"])
 
+            
         titles = guessTitle(trackname)
         retval = getBestVal(titles)
-        if retval.get('Val') is not None:
-            newtags["Title"] = retval["Val"]
-            trackname = stripName(retval["Rep"])
+        if retval is not None:
+            if retval.get('Val') is not None:
+                newtags["Title"] = retval["Val"]
+                trackname = stripName(retval["Rep"])
             
             
         
@@ -158,7 +171,7 @@ def main(args):
     files = pb.getFiles()
     artistDir = getDirname(args.dir)
     for albumDir, filevals in files.items():
-        retval = testAlbum(albumDir, artistDir, files=filevals)
+        retval = genMIDTags(albumDir, artistDir, files=filevals)
                           
 
 if __name__ == "__main__":
