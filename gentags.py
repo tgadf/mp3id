@@ -9,6 +9,114 @@ from time import sleep
 import sys
 import re
 
+
+
+#############################################################################################################################
+#
+#
+#  Track Number Code
+#
+#
+#############################################################################################################################
+def guessTrackNumberNonInt(trackname):
+    retvals = {}
+
+    pattern = "^[A-Z][0-9]"
+    mval    = re.search(pattern, trackname)    
+    if mval is not None:
+        try:
+            retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
+        except:
+            pass
+        
+    return retvals
+            
+
+def guessTrackNumberInt(trackname):
+    retvals = {}
+    
+    pattern = "^[0-9]{2}"
+    mval    = re.search(pattern, trackname)    
+    if mval is not None:
+        try:
+            int(mval.group())
+            retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
+        except:
+            pass
+        
+    return retvals
+            
+
+def guessTrackNumberDiscInt(trackname):
+    retvals = {}
+    
+    pattern = "^[0-9]{3}"
+    mval    = re.search(pattern, trackname)    
+    if mval is not None:
+        try:
+            int(mval.group())
+            retvals[pattern] = {"Val": str(int(mval.group()) % 100), "Rep": trackname.replace(mval.group(), "")}
+        except:
+            pass
+        
+    return retvals
+            
+
+def guessTrackNumber(trackname):
+    retvals = {}
+    retvals["DiscInt"] = guessTrackNumberDiscInt
+    retvals["Int"]     = guessTrackNumberInt
+    retvals["NonInt"]  = guessTrackNumberNonInt
+    
+    results = {k: v(trackname) for k,v in retvals.items()}
+    
+    if len(results["DiscInt"]) > 0:
+        return results["DiscInt"]
+    elif len(results["NonInt"]) > 0:
+        return results["NonInt"]
+    elif len(results["Int"]) > 0:
+        return results["Int"]
+    else:
+        return {}
+    
+    return results
+
+
+
+#############################################################################################################################
+#
+#
+#  Title Code
+#
+#
+#############################################################################################################################
+def guessTitle(trackname):
+    retvals = {}
+    retvals["Best"] = {"Val": trackname, "Rep": ""}
+    return retvals
+
+    
+    
+
+#############################################################################################################################
+#
+#
+#  General Code
+#
+#
+#############################################################################################################################
+def fix(val):
+    if val is None:
+        return ""
+    if isinstance(val, list):
+        if len(val) > 0:
+            return str(val[0])
+        else:
+            return str(val)
+    if isinstance(val, tuple):
+        return str(val)
+    return val
+
 def getBestVal(vals):
     lenvals = {k: len(v) for k, v in vals.items()}
     minval  = 0
@@ -31,47 +139,9 @@ def stripName(trackname):
                 break
     return trackname
 
-def guessTrackNumber(trackname):
-    retvals = {}
 
-    pattern = "^[0-9]{2}"
-    mval    = re.search(pattern, trackname)    
-    if mval is not None:
-        try:
-            int(mval.group())
-            retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
-        except:
-            pass
-        
-    if len(retvals) == 0:
-        pattern = "^[0-9]{1}"
-        mval    = re.search(pattern, trackname)    
-        if mval is not None:
-            try:
-                int(mval.group())
-                retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
-            except:
-                pass
-                
-    return retvals
 
-def guessTitle(trackname):
-    retvals = {}
-    retvals["Best"] = {"Val": trackname, "Rep": ""}
-    return retvals
 
-    
-def fix(val):
-    if val is None:
-        return ""
-    if isinstance(val, list):
-        if len(val) > 0:
-            return str(val[0])
-        else:
-            return str(val)
-    if isinstance(val, tuple):
-        return str(val)
-    return val
     
 def p(vals):
     vals = [fix(x) for x in vals]
@@ -179,6 +249,8 @@ if __name__ == "__main__":
     parser.add_argument('-showpath', '-sp', action="store_true", dest="showpath", default=False)
     parser.add_argument('-dir', '-d', action="store", dest="dir")
     parser.add_argument('-debug', action="store_true", default=False)
+    parser.add_argument('-nonint', action="store_true", default=False)
+
 
 
 
