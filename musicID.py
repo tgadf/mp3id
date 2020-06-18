@@ -19,7 +19,7 @@ class tags:
         self.track       = track
         self.disc        = disc
         self.compilation = compilation
-        
+
     def get(self):
         return self.__dict__
 
@@ -40,16 +40,19 @@ class MusicID():
         self.oggExts  = [".ogg", ".OGG"]
         self.isOGG    = None
 
-        
-        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls", ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp", ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2"]
+
+        self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls",
+        ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8",
+        '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp",
+        ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2"]
         self.skip     = False
-                        
+
         self.file   = file
         self.debug  = debug
         self.allowMissing = allowMissing
         self.test   = test
         self.format = None
-        
+
         if file is not None:
             if isFile(self.file):
                 self.setMusic(self.file)
@@ -81,7 +84,7 @@ class MusicID():
                       'TSOT': 'Title',
                       'TSRC': 'Isrc',
                       'TSST': 'DiscSubtitle'}
-        
+
 
         ###############################################################################
         # Key Map
@@ -96,7 +99,7 @@ class MusicID():
         self.inputMap["Track"]       = "tracknumber"
         self.inputMap["Title"]       = "title"
 
-        
+
         self.inputOGGMap = {}
         self.inputOGGMap["Artist"]      = "artist"
         self.inputOGGMap["Album"]       = "album"
@@ -107,7 +110,7 @@ class MusicID():
         self.inputOGGMap["Track"]       = "tracknumber"
         self.inputOGGMap["Title"]       = "title"
 
-        
+
         self.inputM4AMap = {}
         self.inputM4AMap["Artist"]      = "©ART"
         self.inputM4AMap["Album"]       = "©alb"
@@ -132,8 +135,8 @@ class MusicID():
         self.inputASFMap["Track"]       = "WM/TrackNumber"
         self.inputASFMap["Title"]       = "Title"
 
-        
-        
+
+
         self.keyMap = {}
         self.keyMap["artist"]       = {True: "artist", False: "TPE1"}
         self.keyMap["album"]        = {True: "album", False: "TALB"}
@@ -145,17 +148,17 @@ class MusicID():
         self.keyMap["genre"]        = {True: "genre", False: "TCON"}
         self.keyMap["length"]       = {True: "length", False: "TLEN"}
         self.keyMap["compilation"]  = {True: "compilation", False: "TCMP"}
-    
 
-        
+
+
         self.id3Map = {v: k for k,v in self.mp3tags.items()}
-        
+
         self.tagsEasyID3 = None
         self.tagsID3     = None
         self.tagsFlac    = None
         self.tagsM4A     = None
         self.tagsOGG     = None
-        
+
 
     def getTags(self):
         self.setTags()
@@ -170,12 +173,12 @@ class MusicID():
                             track=self.getTrackNumber(),
                             disc=self.getDiscNumber(),
                             compilation=self.getCompilation())
-        
+
     def isValid(self):
         if self.isMP3 or self.isFLAC:
             return True
         return False
-        
+
     def setMusic(self, file):
         if isFile(file):
             self.file = file
@@ -205,7 +208,7 @@ class MusicID():
                 self.skip = True
             else:
                 raise ValueError("Could not determine format for [{0}] with extention [{1}]".format(file, getExt(file)))
-            
+
             if self.isMP3 is True:
                 #self.findID3Tags()
                 self.findEasyTags()
@@ -219,16 +222,16 @@ class MusicID():
                 self.findOGGTags()
         else:
             raise ValueError("Could not access {0}".format(ifile))
-            
 
-            
-            
+
+
+
     ##############################################################################################################
     #
     # OGG Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findOGGTags(self):
         try:
@@ -238,27 +241,27 @@ class MusicID():
                 print("Could not get OGG tags for {0}".format(self.file))
             audio = None
         self.tagsOGG = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showOGGTags(self):
         if self.tagsOGG is None:
             self.findOGGTags()
         return list(self.tagsOGG.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getOGGTags(self):
         if self.tagsOGG is None:
             self.findOGGTags()
         return self.tagsOGG
-        
+
 
     ########################## Setter ##########################
     def setOGGTag(self, tag, tagVal):
         if self.tagsOGG is None:
             self.findOGGTags()
-    
+
         if self.tagsOGG is None:
             if self.debug:
                 print("Could not set OGG tag because tags are None")
@@ -268,7 +271,7 @@ class MusicID():
             self.tagsOGG[tag] = tagVal
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
-            
+
         if self.test is True:
             print("Not saving because test flag is True")
         else:
@@ -276,13 +279,13 @@ class MusicID():
                 self.tagsOGG.save()
             except:
                 raise ValueError("Could not save tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getOGGTag(self, tag):
         if self.tagsOGG is None:
             self.findOGGTags()
-    
+
         if self.tagsOGG is None:
             if self.debug:
                 print("Could not get OGG tag because tags are None")
@@ -307,19 +310,19 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get OGG tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
+
         return tagVal
-            
 
 
 
-            
+
+
     ##############################################################################################################
     #
     # M4A Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findM4ATags(self):
         try:
@@ -329,27 +332,27 @@ class MusicID():
                 print("Could not get M4A tags for {0}".format(self.file))
             audio = None
         self.tagsM4A = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showM4ATags(self):
         if self.tagsM4A is None:
             self.findM4ATags()
         return list(self.tagsM4A.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getM4ATags(self):
         if self.tagsM4A is None:
             self.findM4ATags()
         return self.tagsM4A
-        
+
 
     ########################## Setter ##########################
     def setM4ATag(self, tag, tagVal):
         if self.tagsM4A is None:
             self.findM4ATags()
-    
+
         if self.tagsM4A is None:
             if self.debug:
                 print("Could not set M4A tag because tags are None")
@@ -359,7 +362,7 @@ class MusicID():
             self.tagsM4A[tag] = tagVal
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
-            
+
         if self.test is True:
             print("Not saving because test flag is True")
         else:
@@ -367,13 +370,13 @@ class MusicID():
                 self.tagsM4A.save()
             except:
                 raise ValueError("Could not save tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getM4ATag(self, tag):
         if self.tagsM4A is None:
             self.findM4ATags()
-    
+
         if self.tagsM4A is None:
             if self.debug:
                 print("Could not get M4A tag because tags are None")
@@ -398,20 +401,20 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get M4A tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
+
         return tagVal
 
-            
 
 
 
-            
+
+
     ##############################################################################################################
     #
     # ASF Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findASFTags(self):
         try:
@@ -421,27 +424,27 @@ class MusicID():
                 print("Could not get ASF tags for {0}".format(self.file))
             audio = None
         self.tagsASF = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showASFTags(self):
         if self.tagsASF is None:
             self.findASFTags()
         return list(self.tagsASF.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getASFTags(self):
         if self.tagsASF is None:
             self.findASFTags()
         return self.tagsASF
-        
+
 
     ########################## Setter ##########################
     def setASFTag(self, tag, tagVal):
         if self.tagsASF is None:
             self.findASFTags()
-    
+
         if self.tagsASF is None:
             if self.debug:
                 print("Could not set ASF tag because tags are None")
@@ -451,7 +454,7 @@ class MusicID():
             self.tagsASF[tag] = tagVal
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
-            
+
         if self.test is True:
             print("Not saving because test flag is True")
         else:
@@ -459,13 +462,13 @@ class MusicID():
                 self.tagsASF.save()
             except:
                 raise ValueError("Could not save tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getASFTag(self, tag):
         if self.tagsASF is None:
             self.findASFTags()
-    
+
         if self.tagsASF is None:
             if self.debug:
                 print("Could not get ASF tag because tags are None")
@@ -490,18 +493,18 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get ASF tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
-        return tagVal
-            
 
-            
-            
+        return tagVal
+
+
+
+
     ##############################################################################################################
     #
     # Flac Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findFlacTags(self):
         try:
@@ -511,27 +514,27 @@ class MusicID():
                 print("Could not get Flac tags for {0}".format(self.file))
             audio = None
         self.tagsFlac = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showFlacTags(self):
         if self.tagsFlac is None:
             self.findFlacTags()
         return list(self.tagsFlac.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getFlacTags(self):
         if self.tagsFlac is None:
             self.findFlacTags()
         return self.tagsFlac
-        
+
 
     ########################## Setter ##########################
     def setFlacTag(self, tag, tagVal):
         if self.tagsFlac is None:
             self.findFlacTags()
-    
+
         if self.tagsFlac is None:
             if self.debug:
                 print("Could not set Flac tag because tags are None")
@@ -541,7 +544,7 @@ class MusicID():
             self.tagsFlac[tag] = tagVal
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
-            
+
         if self.test is True:
             print("Not saving because test flag is True")
         else:
@@ -549,13 +552,13 @@ class MusicID():
                 self.tagsFlac.save()
             except:
                 raise ValueError("Could not save tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getFlacTag(self, tag):
         if self.tagsFlac is None:
             self.findFlacTags()
-    
+
         if self.tagsFlac is None:
             if self.debug:
                 print("Could not get Flac tag because tags are None")
@@ -580,16 +583,16 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get Flac tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
+
         return tagVal
-            
-            
+
+
     ##############################################################################################################
     #
     # EasyID3 Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findEasyTags(self):
         try:
@@ -599,27 +602,27 @@ class MusicID():
                 print("Could not get EasyID3 tags for {0}".format(self.file))
             audio = None
         self.tagsEasyID3 = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showEasyTags(self):
         if self.tagsEasyID3 is None:
             self.findEasyTags()
         return list(self.tagsEasyID3.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getEasyTags(self):
         if self.tagsEasyID3 is None:
             self.findEasyTags()
         return self.tagsEasyID3
-        
+
 
     ########################## Setter ##########################
     def setEasyTag(self, tag, tagVal):
         if self.tagsEasyID3 is None:
             self.findEasyTags()
-    
+
         if self.tagsEasyID3 is None:
             if self.debug:
                 print("Could not set EasyID3 tag because tags are None")
@@ -629,7 +632,7 @@ class MusicID():
             self.tagsEasyID3[tag] = tagVal
         except:
             raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
-            
+
         if self.test is True:
             print("Not saving because test flag is True")
         else:
@@ -637,13 +640,13 @@ class MusicID():
                 self.tagsEasyID3.save()
             except:
                 raise ValueError("Could not save tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getEasyTag(self, tag):
         if self.tagsEasyID3 is None:
             self.findEasyTags()
-    
+
         if self.tagsEasyID3 is None:
             if self.debug:
                 print("Could not get EasyID3 tag because tags are None")
@@ -666,17 +669,17 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get EasyID3 tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
+
         return tagVal
-            
-    
-    
+
+
+
     ##############################################################################################################
     #
     # ID3 Tags
     #
     ##############################################################################################################
-    
+
     ########################## Finder ##########################
     def findID3Tags(self):
         try:
@@ -686,33 +689,33 @@ class MusicID():
                 print("Could not get ID3 tags for {0}".format(self.file))
             audio = None
         self.tagsID3 = audio
-        
-        
+
+
     ########################## Shower ##########################
     def showID3Tags(self):
         if self.tagsID3 is None:
             self.findID3Tags()
         return list(self.tagsID3.keys())
-        
-        
+
+
     ########################## Getter ##########################
     def getID3Tags(self):
         if self.tagsID3 is None:
             self.findID3Tags()
         return self.tagsID3
-        
+
 
     ########################## Setter ##########################
     def setID3Tag(self, tag, tagVal):
         if self.tagsID3 is None:
             self.findID3Tags()
-    
+
         if self.tagsID3 is None:
             if self.debug:
                 print("Could not set ID3 tag because tags are None")
             return
 
-        
+
         if tag == "TXXX":
             try:
                 self.tagsID3.add(TXXX(encoding=3, text=tagVal))
@@ -731,13 +734,13 @@ class MusicID():
                 self.tagsID3.save()
             except:
                 raise ValueError("Could not save ID3 tags to {0}".format(self.file))
-        
+
 
     ########################## Getter ##########################
     def getID3Tag(self, tag):
         if self.tagsID3 is None:
             self.findID3Tags()
-    
+
         if self.tagsID3 is None:
             if self.debug:
                 print("Could not get ID3 tag because tags are None")
@@ -760,9 +763,9 @@ class MusicID():
                     tagVal = None
                 else:
                     raise ValueError("Could not get ID3 tag [{0}] for [{1}] even though it exists".format(tag, self.file))
-    
+
         return tagVal
-        
+
 
 
 
@@ -786,13 +789,13 @@ class MusicID():
             version = None
 
         return version
-    
-    
-    
+
+
+
     ###############################################################################
     # Tag
     ###############################################################################
-    def setTag(self, key, value, easy=True):            
+    def setTag(self, key, value, easy=True):
         if self.isMP3:
             if self.inputMap.get(key) is not None:
                 key = self.inputMap[key]
@@ -806,11 +809,11 @@ class MusicID():
             return self.setFlacTag(key, value)
         elif self.isM4A:
             if self.inputM4AMap.get(key) is not None:
-                key = self.inputM4AMap[key]            
+                key = self.inputM4AMap[key]
             return self.setM4ATag(key, value)
         elif self.isASF:
             if self.inputASFMap.get(key) is not None:
-                key = self.inputASFMap[key]            
+                key = self.inputASFMap[key]
             return self.setASFTag(key, value)
         elif self.isOGG:
             if self.inputOGGMap.get(key) is not None:
@@ -818,7 +821,7 @@ class MusicID():
             return self.setOGGTag(key, value)
         else:
             raise ValueError("Not sure about format for key: value = {0}:{1}".format(key, value))
-    
+
     def getTag(self, key, easy=True):
         if self.isMP3:
             if self.inputMap.get(key) is not None:
@@ -849,8 +852,8 @@ class MusicID():
             return val
         else:
             raise ValueError("Not sure about format for key = {0}".format(key))
-    
-    
+
+
     ###############################################################################
     # Artist
     ###############################################################################
@@ -861,8 +864,8 @@ class MusicID():
     def getArtist(self, easy=True):
         key = self.keyMap["artist"][easy]
         return self.getTag(key, easy)
-    
-    
+
+
     ###############################################################################
     # Album
     ###############################################################################
@@ -873,8 +876,8 @@ class MusicID():
     def getAlbum(self, easy=True):
         key = self.keyMap["album"][easy]
         return self.getTag(key, easy)
-    
-    
+
+
     ###############################################################################
     # AlbumArtist
     ###############################################################################
@@ -885,8 +888,8 @@ class MusicID():
     def getAlbumArtist(self, easy=True):
         key = self.keyMap["albumartist"][easy]
         return self.getTag(key, easy)
-    
-    
+
+
     ###############################################################################
     # Title
     ###############################################################################
@@ -896,9 +899,9 @@ class MusicID():
 
     def getTitle(self, easy=True):
         key = self.keyMap["title"][easy]
-        return self.getTag(key, easy) 
-    
-    
+        return self.getTag(key, easy)
+
+
     ###############################################################################
     # Track Number
     ###############################################################################
@@ -908,9 +911,9 @@ class MusicID():
 
     def getTrackNumber(self, easy=True):
         key = self.keyMap["tracknumber"][easy]
-        return self.getTag(key, easy) 
-    
-    
+        return self.getTag(key, easy)
+
+
     ###############################################################################
     # Disc Number
     ###############################################################################
@@ -920,9 +923,9 @@ class MusicID():
 
     def getDiscNumber(self, easy=True):
         key = self.keyMap["discnumber"][easy]
-        return self.getTag(key, easy) 
-    
-    
+        return self.getTag(key, easy)
+
+
     ###############################################################################
     # Date
     ###############################################################################
@@ -932,9 +935,9 @@ class MusicID():
 
     def getDate(self, easy=True):
         key = self.keyMap["date"][easy]
-        return self.getTag(key, easy) 
+        return self.getTag(key, easy)
 
-        
+
     ###############################################################################
     # Genre
     ###############################################################################
@@ -945,8 +948,8 @@ class MusicID():
     def getGenre(self, easy=True):
         key = self.keyMap["genre"][easy]
         return self.getTag(key, easy)
-    
-    
+
+
     ###############################################################################
     # Length
     ###############################################################################
@@ -957,8 +960,8 @@ class MusicID():
     def getLength(self, easy=True):
         key = self.keyMap["length"][easy]
         return self.getTag(key, easy)
-    
-    
+
+
     ###############################################################################
     # Compilation
     ###############################################################################
@@ -968,9 +971,9 @@ class MusicID():
 
     def getCompilation(self, easy=True):
         key = self.keyMap["compilation"][easy]
-        return self.getTag(key, easy) 
-    
-    
+        return self.getTag(key, easy)
+
+
     ###############################################################################
     # General Info
     ###############################################################################
@@ -998,7 +1001,7 @@ class MusicID():
         size = getSize(self.file, units="MB")
         if isinstance(size[0], float):
             size = round(size[0],2)
-        
+
         retval = {"Version": self.getTag("Version"),
                   "Artist":  self.getTag("Artist"),
                   "AlbumArtist": self.getTag("AlbumArtist"),
@@ -1009,5 +1012,5 @@ class MusicID():
                   "Compilation": self.getTag("Compilation"),
                   "Language": None,
                   "Size": size}
-        
+
         return retval
