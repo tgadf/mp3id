@@ -31,7 +31,7 @@ class MusicID():
     def __init__(self, file=None, debug=False, allowMissing=True, test=False):
         self.mp3Exts  = [".mp3", ".Mp3", ".MP3"]
         self.isMP3    = None
-        self.flacExts = [".flac", ".Flac"]
+        self.flacExts = [".flac", ".Flac", ".FLAC"]
         self.isFLAC   = None
         self.m4aExts  = [".m4a", ".M4a", ".M4A"]
         self.isM4A    = None
@@ -39,12 +39,16 @@ class MusicID():
         self.isASF    = None
         self.oggExts  = [".ogg", ".OGG"]
         self.isOGG    = None
+        self.aiffExts = [".aiff", ".AIFF"]
+        self.isAIFF   = None
+        self.wavExts  = [".wav", ".WAV"]
+        self.isWAV    = None
 
 
         self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls",
         ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8",
         '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp",
-        ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2"]
+        ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2", ".tiff", ".TIFF", ".itlp", ".INF", ".DIR", ".MPG", ".qdat", ".hlp", ".x32", ".lic", ".dll", ".JPEG", ".JPE", ".NFO", ".Jpg", ".rar", ".ape"]
         self.skip     = False
 
         self.file   = file
@@ -99,7 +103,7 @@ class MusicID():
         self.inputMap["Track"]       = "tracknumber"
         self.inputMap["Title"]       = "title"
 
-
+        # OGG
         self.inputOGGMap = {}
         self.inputOGGMap["Artist"]      = "artist"
         self.inputOGGMap["Album"]       = "album"
@@ -110,7 +114,7 @@ class MusicID():
         self.inputOGGMap["Track"]       = "tracknumber"
         self.inputOGGMap["Title"]       = "title"
 
-
+        # M4A
         self.inputM4AMap = {}
         self.inputM4AMap["Artist"]      = "©ART"
         self.inputM4AMap["Album"]       = "©alb"
@@ -122,7 +126,8 @@ class MusicID():
         self.inputM4AMap["TrackNumber"] = "trkn"
         self.inputM4AMap["Track"]       = "trkn"
         self.inputM4AMap["Title"]       = "©nam"
-
+        
+        # ASF
         self.inputASFMap = {}
         self.inputASFMap["Artist"]      = "WM/AlbumArtist"
         self.inputASFMap["Album"]       = "WM/AlbumTitle"
@@ -158,6 +163,7 @@ class MusicID():
         self.tagsFlac    = None
         self.tagsM4A     = None
         self.tagsOGG     = None
+        self.tagsAIFF    = None
 
 
     def getTags(self):
@@ -202,6 +208,14 @@ class MusicID():
                 self.isOGG = True
                 if self.debug:
                     print("  File is OGG")
+            elif getExt(file) in self.aiffExts:
+                self.isAIFF = True
+                if self.debug:
+                    print("  File is AIFF")
+            elif getExt(file) in self.wavExts:
+                self.isWAV = True
+                if self.debug:
+                    print("  File is WAV")
             elif getExt(file) in self.skips:
                 self.skip = True
             elif ".DS_Store" in file:
@@ -220,6 +234,10 @@ class MusicID():
                 self.findASFTags()
             if self.isOGG is True:
                 self.findOGGTags()
+            if self.isAIFF is True:
+                self.findAIFFTags()
+            if self.isWAV is True:
+                self.findWAVTags()
         else:
             raise ValueError("Could not access {0}".format(ifile))
 
@@ -587,6 +605,187 @@ class MusicID():
         return tagVal
 
 
+
+
+    ##############################################################################################################
+    #
+    # AIFF Tags
+    #
+    ##############################################################################################################
+
+    ########################## Finder ##########################
+    def findAIFFTags(self):
+        try:
+            audio = AIFF(self.file)
+        except:
+            if self.debug:
+                print("Could not get AIFF tags for {0}".format(self.file))
+            audio = None
+        self.tagsAIFF = audio
+
+
+    ########################## Shower ##########################
+    def showAIFFTags(self):
+        if self.tagsAIFF is None:
+            self.findAIFFTags()
+        return list(self.tagsAIFF.keys())
+
+
+    ########################## Getter ##########################
+    def getAIFFTags(self):
+        if self.tagsAIFF is None:
+            self.findAIFFTags()
+        return self.tagsAIFF
+
+
+    ########################## Setter ##########################
+    def setAIFFTag(self, tag, tagVal):
+        if self.tagsAIFF is None:
+            self.findAIFFTags()
+
+        if self.tagsAIFF is None:
+            if self.debug:
+                print("Could not set AIFF tag because tags are None")
+            return
+
+        try:
+            self.tagsAIFF[tag] = tagVal
+        except:
+            raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
+
+        if self.test is True:
+            print("Not saving because test flag is True")
+        else:
+            try:
+                self.tagsAIFF.save()
+            except:
+                raise ValueError("Could not save tags to {0}".format(self.file))
+
+
+    ########################## Getter ##########################
+    def getAIFFTag(self, tag):
+        if self.tagsAIFF is None:
+            self.findAIFFTags()
+
+        if self.tagsFlac is None:
+            if self.debug:
+                print("Could not get AIFF tag because tags are None")
+            return
+
+        tagValRes = self.tagsAIFF.get(tag)
+
+        self.debug = True
+        tagVal    = None
+
+        if tagValRes is None:
+            if self.allowMissing is True:
+                tagVal = None
+            else:
+                raise ValueError("Could not get AIFF tag [{0}] for [{1}]".format(tag, self.file))
+
+        if tagValRes is not None:
+            try:
+                tagVal = tagValRes
+            except:
+                if self.allowMissing:
+                    tagVal = None
+                else:
+                    raise ValueError("Could not get AIFF tag [{0}] for [{1}] even though it exists".format(tag, self.file))
+
+        return tagVal
+
+
+
+
+    ##############################################################################################################
+    #
+    # WAV Tags
+    #
+    ##############################################################################################################
+
+    ########################## Finder ##########################
+    def findWAVTags(self):
+        try:
+            audio = WAVE(self.file)
+        except:
+            if self.debug:
+                print("Could not get WAV tags for {0}".format(self.file))
+            audio = None
+        self.tagsWAV = audio
+
+
+    ########################## Shower ##########################
+    def showWAVTags(self):
+        if self.tagsWAV is None:
+            self.findWAVTags()
+        return list(self.tagsWAV.keys())
+
+
+    ########################## Getter ##########################
+    def getWAVTags(self):
+        if self.tagsWAV is None:
+            self.findWAVTags()
+        return self.tagsWAV
+
+
+    ########################## Setter ##########################
+    def setWAVTag(self, tag, tagVal):
+        if self.tagsWAV is None:
+            self.findWAVTags()
+
+        if self.tagsWAV is None:
+            if self.debug:
+                print("Could not set WAV tag because tags are None")
+            return
+
+        try:
+            self.tagsWAV[tag] = tagVal
+        except:
+            raise ValueError("Could not set tag [{0}] to [{1}] for [{2}]".format(tag, tagVal, self.file))
+
+        if self.test is True:
+            print("Not saving because test flag is True")
+        else:
+            try:
+                self.tagsWAV.save()
+            except:
+                raise ValueError("Could not save tags to {0}".format(self.file))
+
+
+    ########################## Getter ##########################
+    def getWAVTag(self, tag):
+        if self.tagsWAV is None:
+            self.findWAVTags()
+
+        if self.tagsFlac is None:
+            if self.debug:
+                print("Could not get WAV tag because tags are None")
+            return
+
+        tagValRes = self.tagsWAV.get(tag)
+
+        self.debug = True
+        tagVal    = None
+
+        if tagValRes is None:
+            if self.allowMissing is True:
+                tagVal = None
+            else:
+                raise ValueError("Could not get WAV tag [{0}] for [{1}]".format(tag, self.file))
+
+        if tagValRes is not None:
+            try:
+                tagVal = tagValRes
+            except:
+                if self.allowMissing:
+                    tagVal = None
+                else:
+                    raise ValueError("Could not get WAV tag [{0}] for [{1}] even though it exists".format(tag, self.file))
+
+        return tagVal
+
+    
+
     ##############################################################################################################
     #
     # EasyID3 Tags
@@ -819,6 +1018,14 @@ class MusicID():
             if self.inputOGGMap.get(key) is not None:
                 key = self.inputOGGMap[key]
             return self.setOGGTag(key, value)
+        elif self.isAIFF:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
+            return self.setAIFFTag(key, value)
+        elif self.isWAV:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
+            return self.setWAVTag(key, value)
         else:
             raise ValueError("Not sure about format for key: value = {0}:{1}".format(key, value))
 
@@ -849,6 +1056,16 @@ class MusicID():
             if self.inputOGGMap.get(key) is not None:
                 key = self.inputOGGMap[key]
             val = self.getOGGTag(key)
+            return val
+        elif self.isAIFF:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
+            val = self.getAIFFTag(key)
+            return val
+        elif self.isWAV:
+            if self.inputMap.get(key) is not None:
+                key = self.inputMap[key]
+            val = self.getWAVTag(key)
             return val
         else:
             raise ValueError("Not sure about format for key = {0}".format(key))
@@ -993,6 +1210,12 @@ class MusicID():
         elif self.isOGG is True:
             self.findOGGTags()
             return self.tagsOGG
+        elif self.isAIFF is True:
+            self.findAIFFTags()
+            return self.tagsAIFF
+        elif self.isWAV is True:
+            self.findWAVTags()
+            return self.tagsWAV
         else:
             raise ValueError("Cannot get raw info for this file!")
 

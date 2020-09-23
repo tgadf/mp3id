@@ -32,6 +32,21 @@ def guessTrackNumberNonInt(trackname):
     return retvals
             
 
+def guessTrackNumberIntSmall(trackname):
+    retvals = {}
+    
+    pattern = "^[0-9]{1}"
+    mval    = re.search(pattern, trackname)    
+    if mval is not None:
+        try:
+            int(mval.group())
+            retvals[pattern] = {"Val": mval.group(), "Rep": trackname.replace(mval.group(), "")}
+        except:
+            pass
+        
+    return retvals
+            
+
 def guessTrackNumberInt(trackname):
     retvals = {}
     
@@ -64,9 +79,10 @@ def guessTrackNumberDiscInt(trackname):
 
 def guessTrackNumber(trackname):
     retvals = {}
-    retvals["DiscInt"] = guessTrackNumberDiscInt
-    retvals["Int"]     = guessTrackNumberInt
-    retvals["NonInt"]  = guessTrackNumberNonInt
+    retvals["DiscInt"]  = guessTrackNumberDiscInt
+    retvals["Int"]      = guessTrackNumberInt
+    retvals["IntSmall"] = guessTrackNumberIntSmall
+    retvals["NonInt"]   = guessTrackNumberNonInt
     
     results = {k: v(trackname) for k,v in retvals.items()}
     
@@ -76,6 +92,8 @@ def guessTrackNumber(trackname):
         return results["NonInt"]
     elif len(results["Int"]) > 0:
         return results["Int"]
+    elif len(results["IntSmall"]) > 0:
+        return results["IntSmall"]
     else:
         return {}
     
@@ -250,10 +268,6 @@ if __name__ == "__main__":
     parser.add_argument('-dir', '-d', action="store", dest="dir")
     parser.add_argument('-debug', action="store_true", default=False)
     parser.add_argument('-nonint', action="store_true", default=False)
-
-
-
-
 
     args = parser.parse_args()
     main(args)

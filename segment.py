@@ -14,11 +14,15 @@ def main(args):
     discSegments  = {}
     
     for ifile in findPattern("./", pattern="."):
+        mid = mp3ID(ifile)
+
         try:
             mid = mp3ID(ifile)
         except:
+            print("Error reading file {0}".format(ifile))
             continue
         album = mid.getAlbum()
+        print("Album: {0}".format(album))
         if album is not None:
             album = album[0]
         if albumSegments.get(album) is None:
@@ -34,6 +38,7 @@ def main(args):
         
         
     if args.album is True:
+        print("Album Segments: {0}".format(albumSegments.keys()))
         for album, albumFiles in albumSegments.items():
             albumDir = setDir(cwd, album)
             mkDir(albumDir)
@@ -44,6 +49,7 @@ def main(args):
                 moveFile(src, dst, debug=True)
         
     if args.disc is True:
+        print("Disc Segments: {0}".format(discSegments.keys()))
         for disc, discFiles in discSegments.items():
             discDir = setDir(cwd, "Disc {0}".format(disc))
             mkDir(discDir)
