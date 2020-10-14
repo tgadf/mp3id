@@ -170,7 +170,7 @@ def header():
     p(["--", "----", "-----", "-----------", "------", "-----", "-----", "----"])
 
     
-def genMIDTags(albumDir, artistDir, files):
+def genMIDTags(albumDir, artistDir, files, args):
     
     retval = {"Track": False, "Album": False, "Title": False, "Multi": False, "Skip": False, "Extra": False, "Mix": False}
     
@@ -231,11 +231,16 @@ def genMIDTags(albumDir, artistDir, files):
                 
 
         #if tags[j]["Title"] is None:
-        if newtags["Title"] is not None:
+        if args.ignoretitle is False:
+            if newtags["Title"] is not None:
+                if fixVals.get(ifile) is None:
+                    fixVals[ifile] = {}
+                fixVals[ifile]["title"] = newtags["Title"]
+
+        if args.tryalbum:
             if fixVals.get(ifile) is None:
                 fixVals[ifile] = {}
-            fixVals[ifile]["title"] = newtags["Title"]
-
+            fixVals[ifile]["album"] = albumName
 
     if len(fixVals) > 0:
         print("")
@@ -257,14 +262,16 @@ def main(args):
     
     pb    = pathBasics(albumDir=args.dir)
     files = pb.getFiles()
-    artistDir = getDirname(args.dir)
+    artistDir = getDirname(args.dir)    
     for albumDir, filevals in files.items():
-        retval = genMIDTags(albumDir, artistDir, files=filevals)
+        retval = genMIDTags(albumDir, artistDir, files=filevals, args=args)
                           
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Music ID Tagger')
     parser.add_argument('-showpath', '-sp', action="store_true", dest="showpath", default=False)
+    parser.add_argument('-tryalbum', '-ta', action="store_true", dest="tryalbum", default=False)
+    parser.add_argument('-ignoretitle', '-it', action="store_true", dest="ignoretitle", default=False)
     parser.add_argument('-dir', '-d', action="store", dest="dir")
     parser.add_argument('-debug', action="store_true", default=False)
     parser.add_argument('-nonint', action="store_true", default=False)
