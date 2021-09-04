@@ -46,10 +46,10 @@ class MusicID():
 
 
         self.skips    = [".jpg", ".JPG", ".jpeg", ".txt", ".log", ".DS_Store", ".bmp", ".m3u", ".png", ".ISO", ".nfo", ".pdf", ".plc", ".pls",
-        ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8",
-        '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp",
-        ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2", ".tiff", ".TIFF", ".itlp", ".INF", ".DIR", ".MPG", ".qdat", ".hlp", ".x32", ".lic", ".dll", ".JPEG", ".JPE", ".NFO", ".Jpg", ".rar", ".ape", ".SFV", ".TXT", ".pcx", ".MD5"]
-        self.skips   += [".mp2"]
+        ".sfv", ".accurip", ".cue", ".mp4", ".mkv", ".gif", ".mov", ".exe", ".m4v", ".db", ".BUP", ".IFO", ".VOB", ".epub", ".webm", ".url", ".m3u8", ".wmv", ".avi",
+        '.LOG', '.info', ".torrent", '.ini', '.ico', ".sh", ".avi", ".vob", ".doc", ".m2v", ".mpg", ".html", ".mht", ".rtf", ".jpe", ".docx", ".ffp", ".dff", ".opus",
+        ".md5", ".CUE", ".tif", ".PNG", ".ipynb", ".py", ".gz", ".xml", ".to", ".MP2", ".tiff", ".TIFF", ".itlp", ".INF", ".DIR", ".MPG", ".qdat", ".hlp", ".x32", ".lic", ".dll", ".JPEG", ".JPE", ".NFO", ".Jpg", ".rar", ".ape", ".SFV", ".TXT", ".pcx", ".MD5", ".TIF"]
+        self.skips   += [".mp2", ".m4p"]
         self.skip     = False
 
         self.file   = file
