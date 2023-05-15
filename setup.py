@@ -20,7 +20,7 @@ setup(
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Topic :: Utilities'
   ],
-  install_requires=['utils==0.0.1', 'mutagen>=1.42.0'],
+  install_requires=['mutagen>=1.42.0'],
   dependency_links=['git+ssh://git@github.com/tgadf/mp3id.git#egg=mp3id-0.0.1', 'git+ssh://git@github.com/tgadf/utils.git#egg=utils-0.0.1']
 )
  

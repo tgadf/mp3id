@@ -3,8 +3,9 @@ from mutagen.mp4 import MP4
 from mutagen.id3 import TXXX
 from mutagen.flac import FLAC
 from mutagen.oggvorbis import OggVorbis
-from fsUtils import isFile
-from fileUtils import getExt, getSize
+from fileutils import FileInfo
+#from fsUtils import isFile
+#from fileUtils import getExt, getSize
 
 ##############################################################################################################################
 # MusicID
@@ -58,9 +59,9 @@ class MusicID():
         self.test   = test
         self.format = None
 
-        if file is not None:
-            if isFile(self.file):
-                self.setMusic(self.file)
+        finfo = FileInfo(file)
+        if finfo.isFile():
+            self.setMusic(self.file)
 
         self.mp3tags  = {'TALB': 'Album',
                       'TBPM': 'BPM',
@@ -187,42 +188,43 @@ class MusicID():
         return False
 
     def setMusic(self, file):
-        if isFile(file):
+        finfo = FileInfo(file)
+        if finfo.isFile():
             self.file = file
-            if getExt(file) in self.flacExts:
+            if finfo.ext in self.flacExts:
                 self.isFLAC = True
                 if self.debug is True:
                     print("  File is FLAC")
-            elif getExt(file) in self.mp3Exts:
+            elif finfo.ext in self.mp3Exts:
                 self.isMP3 = True
                 if self.debug:
                     print("  File is MP3")
-            elif getExt(file) in self.m4aExts:
+            elif finfo.ext in self.m4aExts:
                 self.isM4A = True
                 if self.debug:
                     print("  File is M4A")
-            elif getExt(file) in self.asfExts:
+            elif finfo.ext in self.asfExts:
                 self.isASF = True
                 if self.debug:
                     print("  File is ASF (WMA)")
-            elif getExt(file) in self.oggExts:
+            elif finfo.ext in self.oggExts:
                 self.isOGG = True
                 if self.debug:
                     print("  File is OGG")
-            elif getExt(file) in self.aiffExts:
+            elif finfo.ext in self.aiffExts:
                 self.isAIFF = True
                 if self.debug:
                     print("  File is AIFF")
-            elif getExt(file) in self.wavExts:
+            elif finfo.ext in self.wavExts:
                 self.isWAV = True
                 if self.debug:
                     print("  File is WAV")
-            elif getExt(file) in self.skips:
+            elif finfo.ext in self.skips:
                 self.skip = True
             elif ".DS_Store" in file:
                 self.skip = True
             else:
-                raise ValueError("Could not determine format for [{0}] with extention [{1}]".format(file, getExt(file)))
+                raise ValueError(f"Could not determine format for [{finfo}] with extention [{finfo.ext}]")
 
             if self.isMP3 is True:
                 #self.findID3Tags()
@@ -1222,8 +1224,9 @@ class MusicID():
 
 
     def getInfo(self):
-        size = getSize(self.file, units="MB")
-        if isinstance(size[0], float):
+        size = FileInfo(self.file).size() #getSize()
+        #size = getSize(self.file, units="MB")
+        if isinstance(size,tuple) and isinstance(size[0], float):
             size = round(size[0],2)
 
         retval = {"Version": self.getTag("Version"),

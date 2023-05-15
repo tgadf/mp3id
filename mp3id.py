@@ -1,7 +1,8 @@
 from mutagen.easyid3 import EasyID3, ID3
 from mutagen.id3 import TXXX
-from fsUtils import isFile
-from fileUtils import getExt
+from fileutils import FileInfo
+#from fsUtils import isFile
+#from fileUtils import getExt
 
 ##############################################################################################################################
 # MP3ID
@@ -28,11 +29,11 @@ class mp3ID():
     def __init__(self, mp3=None, debug=False, allowMissing=True, test=False):
         self.mp3exts = [".mp3", ".MP3", ".Mp3"]
         
-        if mp3 is not None:
-            if not isFile(mp3):
-                raise ValueError("Could not access {0}".format(mp3))
-            if getExt(mp3) not in self.mp3exts:
-                raise ValueError("This is not an mp3")
+        finfo = FileInfo(mp3)
+        if not finfo.isFile():
+            raise ValueError(f"Could not access {mp3}")
+        if finfo.ext not in self.mp3exts:
+            raise ValueError(f"Extension [{finfo.ext} is not an mp3")
 
                 
         self.mp3   = mp3
@@ -74,8 +75,8 @@ class mp3ID():
         self.tagsID3     = {}
         
         
-        
-        if isFile(self.mp3):
+        finfo = FileInfo(self.mp3)
+        if finfo.isFile(self.mp3):
             self.setMP3(self.mp3)
               
 
@@ -94,7 +95,8 @@ class mp3ID():
                             compilation=self.getCompilation())
         
     def setMP3(self, mp3):
-        if isFile(mp3):
+        finfo = FileInfo(mp3)
+        if finfo.isFile(mp3):
             self.mp3 = mp3
             
             self.findEasyTags()

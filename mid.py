@@ -1,23 +1,28 @@
 import argparse
 from musicID import MusicID
-from fsUtils import mkDir, moveFile, setDir
-from fileUtils import isFile, isDir, getDirname
+from fileutils import FileInfo, DirInfo
+#from fsUtils import mkDir, moveFile, setDir
+#from fileUtils import isFile, isDir, getDirname
 from searchUtils import findAll, findWalk
 from os import getcwd
 
 def getFiles(fileval, dirval):
+    finfo = FileInfo(fileval) if isinstance(fileval,str) else None
+    dinfo = DirInfo(dirval) if isinstance(dirval,str) else None
+    
     files = {}
-    if fileval is not None:
-        if isFile(fileval) is True:
+    if isinstance(finfo,FileInfo):
+        if finfo.isFile():
             files[getcwd()] = [fileval]
         else:
             raise ValueError("File {0} is not a file!".format(fileval))
             
-    if dirval is not None:
-        if isDir(dirval) is True:
+    if isinstance(dinfo,DirInfo):
+        if dinfo.isDir():
             files = findWalk(dirval)
         else:
             raise ValueError("File {0} is not a file!".format(fileval))
+            
     return files
 
 def fix(val):
@@ -136,8 +141,16 @@ def main(args):
 
     if args.search is True:
         for dirval,files in searchResults.items():
-            tmpDir = mkDir(setDir(dirval, "tmp"))
+            tmpDir = DirInfo(dirval).join("tmp")
+            tmpDir.mkDir()
+            #tmpDir = mkDir(setDir(dirval, "tmp"))
             for ifile in files:
+                srcFile = FileInfo(ifile)
+                dstFile = tmpDir.join(srcFile.name)
+                print(srcFile)
+                print(dstFile)
+                1/0
+                srcFile.mvFile(dstFile)
                 moveFile(ifile, tmpDir)
             
 
